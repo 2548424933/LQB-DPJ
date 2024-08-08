@@ -1,0 +1,9 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\Device.obj",
+".\Objects\BTN.obj",
+".\Objects\SMG.obj",
+".\Objects\onewire.obj",
+".\Objects\System.obj" 
+TO ".\Objects\qi" 
+PRINT(".\Listings\qi.m51") RAMSIZE(256) 

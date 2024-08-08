@@ -1,35 +1,24 @@
-C51 COMPILER V9.56.0.0   DEVICE                                                            07/22/2024 10:52:24 PAGE 1   
+C51 COMPILER V9.56.0.0   DEVICE                                                            07/28/2024 11:33:21 PAGE 1   
 
 
 C51 COMPILER V9.56.0.0, COMPILATION OF MODULE DEVICE
 OBJECT MODULE PLACED IN .\Objects\Device.obj
-COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Device\Device.c OPTIMIZE(8,SPEED) BROWSE MODP2 INCDIR(.\System;.\De
-                    -vice) DEBUG OBJECTEXTEND PRINT(.\Listings\Device.lst) OBJECT(.\Objects\Device.obj)
+COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Device\Device.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Device;.\System) 
+                    -DEBUG OBJECTEXTEND PRINT(.\Listings\Device.lst) OBJECT(.\Objects\Device.obj)
 
 line level    source
 
    1          #include "Device.h"
    2          
-   3          
-   4          
-   5          void DeviceCtrl(u8 p2data,u8 p0data){
-   6   1              P0 = p0data;
-   7   1              P2 = P2 & 0x1f |  p2data;
-   8   1              P2 &= 0x1f;
-   9   1      }
-  10          
-  11          void System_Init(){
-  12   1              DeviceCtrl(0xa0,0x00);
-  13   1              DeviceCtrl(0x80,0xff);
-  14   1      }
-  15          
-  16          
-  17          
-  18          
+   3          void DeviceCtrl(u8 data2,u8 data1){
+   4   1              P0 = data1;
+   5   1              P2 = P2&0x1f | data2;
+   6   1              P2 = P2&0x1f;
+   7   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =     27    ----
+   CODE SIZE        =     13    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
