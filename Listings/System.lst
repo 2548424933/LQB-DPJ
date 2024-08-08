@@ -1,10 +1,10 @@
-C51 COMPILER V9.56.0.0   SYSTEM                                                            07/22/2024 10:52:24 PAGE 1   
+C51 COMPILER V9.56.0.0   SYSTEM                                                            07/26/2024 23:27:35 PAGE 1   
 
 
 C51 COMPILER V9.56.0.0, COMPILATION OF MODULE SYSTEM
 OBJECT MODULE PLACED IN .\Objects\System.obj
-COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE System\System.c OPTIMIZE(8,SPEED) BROWSE MODP2 INCDIR(.\System;.\De
-                    -vice) DEBUG OBJECTEXTEND PRINT(.\Listings\System.lst) OBJECT(.\Objects\System.obj)
+COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE System\System.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Device;.\System) 
+                    -DEBUG OBJECTEXTEND PRINT(.\Listings\System.lst) OBJECT(.\Objects\System.obj)
 
 line level    source
 

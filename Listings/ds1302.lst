@@ -1,10 +1,10 @@
-C51 COMPILER V9.56.0.0   DS1302                                                            07/22/2024 10:52:24 PAGE 1   
+C51 COMPILER V9.56.0.0   DS1302                                                            07/26/2024 23:27:35 PAGE 1   
 
 
 C51 COMPILER V9.56.0.0, COMPILATION OF MODULE DS1302
 OBJECT MODULE PLACED IN .\Objects\ds1302.obj
-COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Device\ds1302.c OPTIMIZE(8,SPEED) BROWSE MODP2 INCDIR(.\System;.\De
-                    -vice) DEBUG OBJECTEXTEND PRINT(.\Listings\ds1302.lst) OBJECT(.\Objects\ds1302.obj)
+COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Device\ds1302.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Device;.\System) 
+                    -DEBUG OBJECTEXTEND PRINT(.\Listings\ds1302.lst) OBJECT(.\Objects\ds1302.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   52   2              } 
   53   1              RST=0;  _nop_();
   54   1              SCK=0;  _nop_();
-C51 COMPILER V9.56.0.0   DS1302                                                            07/22/2024 10:52:24 PAGE 2   
+C51 COMPILER V9.56.0.0   DS1302                                                            07/26/2024 23:27:35 PAGE 2   
 
   55   1              SCK=1;  _nop_();
   56   1              SDA=0;  _nop_();
@@ -72,16 +72,15 @@ line level    source
   60          
   61          //-------------以下函数需要自己实现------------------------------//
   62          void Clock_Set(u8 hour,u8 minute,u8 second){
-  63   1                      Write_Ds1302_Byte(0x8e,0x00);
-  64   1                      Write_Ds1302_Byte(0x80,DecToBCD(second));
-  65   1                      Write_Ds1302_Byte(0x82,DecToBCD(minute));
-  66   1                      Write_Ds1302_Byte(0x84,DecToBCD(hour));
-  67   1                      Write_Ds1302_Byte(0x8e,0x80);
+  63   1              Write_Ds1302_Byte(0x8e,0x00);            
+  64   1              Write_Ds1302_Byte(0x80,DecToBCD(second));
+  65   1              Write_Ds1302_Byte(0x82,DecToBCD(minute));
+  66   1              Write_Ds1302_Byte(0x84,DecToBCD(hour));
+  67   1              Write_Ds1302_Byte(0x8e,0x80);
   68   1      }
   69          
   70          
   71          
-  72          
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE

@@ -1,0 +1,59 @@
+C51 COMPILER V9.56.0.0   KBD                                                               07/26/2024 23:27:35 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE KBD
+OBJECT MODULE PLACED IN .\Objects\KBD.obj
+COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Device\KBD.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Device;.\System) DEB
+                    -UG OBJECTEXTEND PRINT(.\Listings\KBD.lst) OBJECT(.\Objects\KBD.obj)
+
+line level    source
+
+   1          #include "KBD.h"
+   2          #define KEY_NO 0
+   3          #define KEY_DOWN 1
+   4          #define KEY_UP 2
+   5          
+   6          
+   7          u8 KBD_Read_State(){
+   8   1              static u8 key_state = KEY_NO;
+   9   1              u8 key_val = 0;
+  10   1              P3 = 0x0f;
+  11   1              switch(key_state){
+  12   2                      case KEY_NO:
+  13   2                      if(P3 != 0x0f){
+  14   3                              key_state = KEY_DOWN;
+  15   3                      }
+  16   2                      break;
+  17   2                      case KEY_DOWN:
+  18   2                      if(P3 != 0x0f){
+  19   3                              key_state = KEY_UP;
+  20   3                              if(P3 == 0x07) key_val = 4;
+  21   3                              if(P3 == 0x0b) key_val = 5;
+  22   3                              if(P3 == 0x0d) key_val = 6;
+  23   3                              if(P3 == 0x0e) key_val = 7;
+  24   3                      }else{key_state=KEY_NO;}
+  25   2                      break;
+  26   2                      case KEY_UP:
+  27   2                      if(P3 == 0x0f){
+  28   3                              key_state = KEY_NO;
+  29   3                      }
+  30   2                      break;
+  31   2              }
+  32   1              return key_val;
+  33   1              
+  34   1              
+  35   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     76    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

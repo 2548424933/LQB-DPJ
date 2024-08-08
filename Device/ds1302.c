@@ -60,13 +60,12 @@ unsigned char Read_Ds1302_Byte ( unsigned char address )
 
 //-------------以下函数需要自己实现------------------------------//
 void Clock_Set(u8 hour,u8 minute,u8 second){
-		Write_Ds1302_Byte(0x8e,0x00);
-		Write_Ds1302_Byte(0x80,DecToBCD(second));
-		Write_Ds1302_Byte(0x82,DecToBCD(minute));
-		Write_Ds1302_Byte(0x84,DecToBCD(hour));
-		Write_Ds1302_Byte(0x8e,0x80);
+	Write_Ds1302_Byte(0x8e,0x00);            
+	Write_Ds1302_Byte(0x80,DecToBCD(second));
+	Write_Ds1302_Byte(0x82,DecToBCD(minute));
+	Write_Ds1302_Byte(0x84,DecToBCD(hour));
+	Write_Ds1302_Byte(0x8e,0x80);
 }
-
 
 
 

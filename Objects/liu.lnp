@@ -1,0 +1,10 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\device.obj",
+".\Objects\KBD.obj",
+".\Objects\SMG.obj",
+".\Objects\onewire.obj",
+".\Objects\ds1302.obj",
+".\Objects\System.obj" 
+TO ".\Objects\liu" 
+PRINT(".\Listings\liu.m51") RAMSIZE(256) 
