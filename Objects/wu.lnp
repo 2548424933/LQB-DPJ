@@ -1,0 +1,9 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\device.obj",
+".\Objects\KBD.obj",
+".\Objects\SMG.obj",
+".\Objects\onewire.obj",
+".\Objects\System.obj" 
+TO ".\Objects\wu" 
+PRINT(".\Listings\wu.m51") RAMSIZE(256) 

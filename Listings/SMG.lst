@@ -1,34 +1,42 @@
-C51 COMPILER V9.56.0.0   SMG                                                               07/22/2024 10:52:24 PAGE 1   
+C51 COMPILER V9.56.0.0   SMG                                                               07/25/2024 10:58:55 PAGE 1   
 
 
 C51 COMPILER V9.56.0.0, COMPILATION OF MODULE SMG
 OBJECT MODULE PLACED IN .\Objects\SMG.obj
-COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Device\SMG.c OPTIMIZE(8,SPEED) BROWSE MODP2 INCDIR(.\System;.\Devic
-                    -e) DEBUG OBJECTEXTEND PRINT(.\Listings\SMG.lst) OBJECT(.\Objects\SMG.obj)
+COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Device\SMG.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Device;.\System) DEB
+                    -UG OBJECTEXTEND PRINT(.\Listings\SMG.lst) OBJECT(.\Objects\SMG.obj)
 
 line level    source
 
    1          #include "SMG.h"
    2          
-   3          u8 smg_buf[8];
-   4          u8 smg_code[] = {0x3f,0x06,0x5B,0x4f,0x66,0x6D,0x7D,0x07,0x7f,0x6f}; 
-   5          
-   6          void SMG_Display(void){
-   7   1              static int i;
-   8   1              DeviceCtrl(0xc0,0);
-   9   1              DeviceCtrl(0xe0,~smg_buf[i]);
-  10   1              DeviceCtrl(0xc0,0x01<<i);
-  11   1              i++;
-  12   1              if(i == 8) i=0;
-  13   1      }
+   3          u8 smg_code[] = {0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7D,0x07,0x7f,0x6f};
+   4          u8 smg_buf[8] = {0x3f,0x3f,0x3f,0x3f,0x3f,0x3f,0x3f,0x3f};
+   5          u8 set_buf[8];
+   6          static u8 i;
+   7          
+   8          void SMG_Display(u8 Display){
+   9   1              DeviceCtrl(0xc0,0);
+  10   1              if(Display == 0){
+  11   2              DeviceCtrl(0xe0,~smg_buf[i]);
+  12   2              }else{
+  13   2              DeviceCtrl(0xe0,~set_buf[i]);
+  14   2              }
+  15   1              
+  16   1              DeviceCtrl(0xc0,0x01<<i);
+  17   1              i++;
+  18   1              if(i == 8){
+  19   2                      i = 0;
+  20   2              }
+  21   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =     58    ----
+   CODE SIZE        =     60    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =     20    ----
+   DATA SIZE        =     27       1
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.

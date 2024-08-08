@@ -1,0 +1,34 @@
+C51 COMPILER V9.56.0.0   DEVICE                                                            07/25/2024 10:58:55 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE DEVICE
+OBJECT MODULE PLACED IN .\Objects\device.obj
+COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Device\device.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Device;.\System) 
+                    -DEBUG OBJECTEXTEND PRINT(.\Listings\device.lst) OBJECT(.\Objects\device.obj)
+
+line level    source
+
+   1          #include "device.h"
+   2          
+   3          void DeviceCtrl(u8 data2,u8 data1){
+   4   1              P0 = data1;
+   5   1              P2 = P2 & 0x1f | data2;
+   6   1              P2 = P2 & 0x1f;
+   7   1      }
+   8          
+   9          
+  10          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     13    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
