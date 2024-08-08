@@ -1,0 +1,11 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\Device.obj",
+".\Objects\KBD.obj",
+".\Objects\SMG.obj",
+".\Objects\ds1302.obj",
+".\Objects\onewire.obj",
+".\Objects\BTN.obj",
+".\Objects\System.obj" 
+TO ".\Objects\ba" 
+PRINT(".\Listings\ba.m51") RAMSIZE(256) 

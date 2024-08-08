@@ -1,61 +1,60 @@
-C51 COMPILER V9.56.0.0   BTN                                                               07/22/2024 10:52:24 PAGE 1   
+C51 COMPILER V9.56.0.0   BTN                                                               08/01/2024 21:52:22 PAGE 1   
 
 
 C51 COMPILER V9.56.0.0, COMPILATION OF MODULE BTN
 OBJECT MODULE PLACED IN .\Objects\BTN.obj
-COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Device\BTN.c OPTIMIZE(8,SPEED) BROWSE MODP2 INCDIR(.\System;.\Devic
-                    -e) DEBUG OBJECTEXTEND PRINT(.\Listings\BTN.lst) OBJECT(.\Objects\BTN.obj)
+COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Device\BTN.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Device;.\System) DEB
+                    -UG OBJECTEXTEND PRINT(.\Listings\BTN.lst) OBJECT(.\Objects\BTN.obj)
 
 line level    source
 
    1          #include "BTN.h"
-   2          #define KEY_NO 0
-   3          #define KEY_UP 1
-   4          #define KEY_DOWN 2
-   5          
-   6          u8 SYS = 0;
-   7          
-   8          u8 BTN_Read_State(){
-   9   1              static u8 key_state = KEY_NO;
-  10   1              u8 key_io = P3 & 0x0f;
-  11   1              u8 key_val;             //static u8 key_val;
-  12   1              switch(key_state){
-  13   2                      case KEY_NO:
-  14   2                      if(key_io) key_state = KEY_UP;
-  15   2                      case KEY_DOWN:
-  16   2                      if(key_io){
-  17   3                              if(key_io == 0x0e){               //按键7切换状态      0为自动
-  18   4      //                              if(SYS == 0) {
-  19   4      //                                      SYS = 1;
-  20   4      //                              }else   SYS = 0;                
-  21   4      
-  22   4      //                              SYS = !SYS;      //按位取反
-  23   4                                      key_val = 7;
-  24   4                              }  ;              
-  25   3                              if(key_io == 0x0d) key_val = 6;
-  26   3                              if(key_io == 0x0b) key_val = 5;
-  27   3                              if(key_io == 0x07) key_val = 4;
-  28   3                              key_state = KEY_UP;
-  29   3                              
-  30   3                      }else{
-  31   3                              key_state = KEY_NO;
-  32   3                      }
-  33   2                      case KEY_UP:
-  34   2                      if(key_io ==  0x0f){
-  35   3                      key_state = KEY_NO;
-  36   3                      key_val = 0;
-  37   3                      }
-  38   2              }
-  39   1              return key_val;
-  40   1      }
+   2          
+   3          //#define KEY_NO 0
+   4          //#define KEY_DOWN 1
+   5          //#define KEY_UP 2
+   6          
+   7          //u8 BTN_Read_State(){
+   8          //      static u8 key_state = 0;  //按键状态
+   9          //      u8 key_io = P3 & 0X0f;   //P3 IO口的值
+  10          //      u8 key_val = 0;   //返回键值
+  11          //      switch(key_state){
+  12          //              case KEY_NO:
+  13          //                      if(key_io != 0x0f) key_state = KEY_DOWN;
+  14          //                      break;
+  15          //              case KEY_DOWN:
+  16          //                      if(key_io != 0x0f){
+  17          //                              if(key_io==0x0e) key_val = 7;
+  18          //                              if(key_io==0x0d) key_val = 6;
+  19          //                              if(key_io==0x0b) key_val = 5;
+  20          //                              if(key_io==0x07) key_val = 4;
+  21          //                              key_state = KEY_UP;
+  22          //                      }else{
+  23          //                              key_state = KEY_NO;
+  24          //                      }
+  25          //                      break;
+  26          //              case KEY_UP:
+  27          //                      if(key_io == 0x0f){
+  28          //                      key_state = KEY_NO;
+  29          //                      key_val = 0;
+  30          //                      break;
+  31          //                      }
+  32          //      }
+  33          //      return key_val;
+  34          //}
+  35          
+  36          
+  37          
+  38          
+  39          
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =     62    ----
+   CODE SIZE        =   ----    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =      2    ----
+   DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.

@@ -2,8 +2,6 @@
 #define __DEVICE_H_
 #include "System.h"
 
-void System_Init(void);
-
-void DeviceCtrl(u8 p2data,u8 p1data);
-
+void DeviceCtrl(u8 data2,u8 data1);
+void System_Init();
 #endif
