@@ -1,0 +1,12 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\System.obj",
+".\Objects\Timer.obj",
+".\Objects\Delay.obj",
+".\Objects\SMG.obj",
+".\Objects\Device.obj",
+".\Objects\ds1302.obj",
+".\Objects\iic.obj",
+".\Objects\BTN.obj" 
+TO ".\Objects\第四届智能灌溉" 
+PRINT(".\Listings\第四届智能灌溉.m51") RAMSIZE(256) 
