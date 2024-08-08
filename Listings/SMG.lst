@@ -1,0 +1,37 @@
+C51 COMPILER V9.56.0.0   SMG                                                               07/22/2024 10:52:24 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE SMG
+OBJECT MODULE PLACED IN .\Objects\SMG.obj
+COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Device\SMG.c OPTIMIZE(8,SPEED) BROWSE MODP2 INCDIR(.\System;.\Devic
+                    -e) DEBUG OBJECTEXTEND PRINT(.\Listings\SMG.lst) OBJECT(.\Objects\SMG.obj)
+
+line level    source
+
+   1          #include "SMG.h"
+   2          
+   3          u8 smg_buf[8];
+   4          u8 smg_code[] = {0x3f,0x06,0x5B,0x4f,0x66,0x6D,0x7D,0x07,0x7f,0x6f}; 
+   5          
+   6          void SMG_Display(void){
+   7   1              static int i;
+   8   1              DeviceCtrl(0xc0,0);
+   9   1              DeviceCtrl(0xe0,~smg_buf[i]);
+  10   1              DeviceCtrl(0xc0,0x01<<i);
+  11   1              i++;
+  12   1              if(i == 8) i=0;
+  13   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     58    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     20    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

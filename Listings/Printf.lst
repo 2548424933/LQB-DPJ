@@ -1,0 +1,34 @@
+C51 COMPILER V9.56.0.0   PRINTF                                                            07/21/2024 15:43:19 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE PRINTF
+OBJECT MODULE PLACED IN .\Objects\Printf.obj
+COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Printf.c OPTIMIZE(8,SPEED) BROWSE MODP2 INCDIR(.\System;.\Device) D
+                    -EBUG OBJECTEXTEND PRINT(.\Listings\Printf.lst) OBJECT(.\Objects\Printf.obj)
+
+line level    source
+
+   1          #include <stdio.h>
+   2           #include "Printf.h"
+*** ERROR C141 IN LINE 5 OF Printf.h: syntax error near '*', expected ')'
+   3           
+   4          #define ITM_PORT8(n)         (*(volatile unsigned char *)(0xe0000000 + 4*(n)))
+   5          #define ITM_PORT16(n)        (*(volatile unsigned short *)(0xe0000000 + 4*(n)))
+   6          #define ITM_PORT32(n)        (*(volatile unsigned long *)(0xe0000000 + 4*(n)))
+   7          #define DEMCR                (*(volatile unsigned long *)(0xE000EDFC))
+   8          #define TRCENA               0X01000000
+   9           
+  10          int fputc(int ch, FILE *f)
+*** ERROR C141 IN LINE 10 OF Printf.c: syntax error near '*', expected ')'
+  11          {
+  12   1          if(DEMCR & TRCENA)
+  13   1          {
+  14   2              while(ITM_PORT32(0) == 0);                                                                        
+             -                                                                                                                        
+             -                                                                                      
+  15   2              ITM_PORT8(0) = ch;
+  16   2          }
+  17   1          return ch;
+  18   1      }
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  2 ERROR(S)
