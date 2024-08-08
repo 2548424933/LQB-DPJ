@@ -1,0 +1,38 @@
+C51 COMPILER V9.56.0.0   ADPCF                                                             07/18/2024 20:40:21 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE ADPCF
+OBJECT MODULE PLACED IN .\Objects\ADPCF.obj
+COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Device\ADPCF.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Device;.\System;.\
+                    -Listings;.\Objects) DEBUG OBJECTEXTEND PRINT(.\Listings\ADPCF.lst) OBJECT(.\Objects\ADPCF.obj)
+
+line level    source
+
+   1          #include "ADPCF.h"
+*** WARNING C323 IN LINE 1 OF Device\BTM.h: newline expected, extra characters found
+   2          
+   3          
+   4          //void vADC_Process(){
+   5          //              static u8 ch1;
+   6          //              vRead_ADC(0x41);
+   7          //              ch1 = vRead_ADC(0x41);
+   8          //              if(ch1 < 125){
+   9          //                      vDeviceCtrl(0x80,0xfe);
+  10          //              }else{
+  11          //                      vDeviceCtrl(0x80,0xff);
+  12          //              }
+  13          //}
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,12 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\System.obj",
+".\Objects\timer.obj",
+".\Objects\BTM.obj",
+".\Objects\SMG.obj",
+".\Objects\Device.obj",
+".\Objects\KBD.obj",
+".\Objects\ADPCF.obj",
+".\Objects\iic.obj" 
+TO ".\Objects\Si" 
+PRINT(".\Listings\Si.m51") RAMSIZE(256) 

@@ -1,0 +1,27 @@
+C51 COMPILER V9.56.0.0   AFMQ                                                              07/10/2024 14:57:16 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE AFMQ
+OBJECT MODULE PLACED IN .\Objects\AFMQ.obj
+COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE ..\·äÃùÆ÷\Device\AFMQ.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Device;.\
+                    -System;.\Listings;.\Objects) DEBUG OBJECTEXTEND PRINT(.\Listings\AFMQ.lst) OBJECT(.\Objects\AFMQ.obj)
+
+line level    source
+
+   1          #include "AFMQ.h"
+*** WARNING C323 IN LINE 1 OF .\Device\BTM.h: newline expected, extra characters found
+   2          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

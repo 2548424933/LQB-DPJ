@@ -1,0 +1,41 @@
+C51 COMPILER V9.56.0.0   DEVICE                                                            07/18/2024 20:40:21 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE DEVICE
+OBJECT MODULE PLACED IN .\Objects\Device.obj
+COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Device\Device.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Device;.\System;.
+                    -\Listings;.\Objects) DEBUG OBJECTEXTEND PRINT(.\Listings\Device.lst) OBJECT(.\Objects\Device.obj)
+
+line level    source
+
+   1          #include "Device.h"
+*** WARNING C323 IN LINE 1 OF Device\BTM.h: newline expected, extra characters found
+   2          
+   3          void vSystem_Init(){
+   4   1      //蜂鸣器、继电器初始化 不叫且不闭合
+   5   1              P0 = 0;         
+   6   1              P2 = 0xa0;
+   7   1              P2 = 0;
+   8   1      }
+   9          
+  10          
+  11          
+  12          void vDeviceCtrl(u8 p2data,u8 p0data){
+  13   1              P0 = p0data;
+  14   1              P2 = P2 & 0x1f | p2data;
+  15   1              P2 = P2 & 0x1f;
+  16   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     22    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)
