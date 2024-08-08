@@ -1,0 +1,9 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\device.obj",
+".\Objects\KBD.obj",
+".\Objects\SMG.obj",
+".\Objects\iic.obj",
+".\Objects\System.obj" 
+TO ".\Objects\jiu" 
+PRINT(".\Listings\jiu.m51") RAMSIZE(256) 

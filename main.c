@@ -1,312 +1,281 @@
 #include "System.h"
-sbit relay = P0^4;
-sbit buzzer = P0^6;
-sbit LED1 = P0^0;
-sbit LED2 = P0^1;
-sbit LED3 = P0^7;
-bit buzzer_flag,relay_flag,buzzer_beep;
-u8 display;//显示的界面
+u8 key_time;
+u8 Display = 0;
+u8 adc_val;
+u16 adc_time;
 
-void SMG_Process(void);
+u8 pwm_time;
+u8 pwm_duty;
 
-//ds1302时钟读取
-u8 hour,minute,second;
-void DS1302_Process(void){
-	minute = BCDToDec(Read_Ds1302_Byte(0x83));
-	hour = BCDToDec(Read_Ds1302_Byte(0x85));
+u8 twinkling_flag;
+u16 twinkling_time;
+u8 i = 0;
+bit twinkling;
+
+u8 kbd_six_count=0;
+
+u8 a;
+
+void Timer2_Init(void)		//1毫秒@12.000MHz
+{
+	AUXR &= 0xFB;			//定时器时钟12T模式
+	T2L = 0x18;				//设置定时初始值
+	T2H = 0xFC;				//设置定时初始值
+	AUXR |= 0x10;			//定时器2开始计时
+//----------记得要加上这两个------------------
+	IE2 |= 0x04;                                                     //开定时器2中断
+	EA = 1;															 //开启总中断
 }
 
-//电位器 Rb2读取
-u8 ch1;       //湿度值
-u8 ch2;     //湿度阀值
-u8 ch3;     //湿度阀值判断
-u8 Read_ADC_Process(){
-		u8 a;
-		//EA = 0;
-		a = Read_ADC(0x43)/2.57f;
-		//EA = 1;
-		return a;                 //ch1
+//ADC读取
+void ADC_Read_Process(){
+	if(adc_time >=500){
+		adc_time =0;
+		adc_val = Read_ADC(0x43)/51;         //读取PCF8591 设定为0~5v
+	}
+
 }
 
-//湿度值判断条件
-void Pan_Process(bit buzzer_flag,bit relay_flag){
-		if(buzzer_flag == 0 && relay_flag == 0){          ///           
-			P2 = 0xa0;buzzer=0;relay=0;P2=0x00;
+u16 LED_Interval;
+u16 LED_Intervaltime[4];
+u8 LED_Mode=1;
+u8 ledshift;
+u8 led_ctrl = 0xff;
+bit LED_flag=1;
+//LED灯状态
+void LED_Process(){
+	if(LED_flag==1){
+		if(LED_Mode==1){
+			if(LED_Interval>=LED_Intervaltime[i]){
+				led_ctrl =  ~(0x01<<ledshift);
+				ledshift++;
+				if(ledshift==8) ledshift=0;
+				LED_Interval=0;
+			}
 		}
-		if(buzzer_flag == 0 && relay_flag == 1){              
-			P2 = 0xa0;buzzer=0;relay=1;P2=0x00;
+		if(LED_Mode==2){
+			if(LED_Interval>=LED_Intervaltime[i]){
+				led_ctrl = ~(0x80 >>ledshift);
+				ledshift++;
+				if(ledshift==8) ledshift=0;
+				LED_Interval=0;
+			}
 		}
-		if(buzzer_flag == 1 && relay_flag == 0){ 
-			P2 = 0xa0;buzzer=1;relay=0;P2=0x00;
+		if(LED_Mode==3){
+			if(LED_Interval>=LED_Intervaltime[i]){
+				led_ctrl = ~((0x01<<ledshift) | (0x80>>ledshift));
+				ledshift++;
+				if(ledshift==4) ledshift=0;
+				LED_Interval=0;
+			}
 		}
-		if(buzzer_flag == 1 && relay_flag == 1){ 
-			P2 = 0xa0;buzzer=1;relay=1;P2=0x00;
+		if(LED_Mode==4){
+			if(LED_Interval>=LED_Intervaltime[i]){
+				led_ctrl = ~((0x08>>ledshift) | (0x10<<ledshift));
+				ledshift++;
+				if(ledshift==4) ledshift=0;
+				LED_Interval=0;
+			}
 		}
+	
+	}
+	Device_Ctrl(0x80,led_ctrl);
 }
 
-//手动状态
+//PWM调光
+void PWM_Process(u8 adc_val){
+	if(0<=adc_val && adc_val<=1) pwm_duty = 20;
+	if(1<adc_val && adc_val<=2) pwm_duty = 40;
+	if(2<adc_val && adc_val<=3) pwm_duty = 60;
+	if(3<adc_val && adc_val<=5) pwm_duty = 80;
+	pwm_time = pwm_time%10 +1;
+	if(pwm_time <= (pwm_duty/10)){
+		Device_Ctrl(0x80,led_ctrl);
+	}
+	else{
+		Device_Ctrl(0x80,0xff);
+	}
+}
+
+//读取EEPROM      第一次开机时用
+void RRead_EEPROM(){
+	if(Read_EEPROM(0x05) != 0xff && Read_EEPROM(0x06) != 0xff){							//如果里面没有数据就不读取了
+		LED_Intervaltime[0] = (Read_EEPROM(0x01)<<8) | Read_EEPROM(0x00);
+		LED_Intervaltime[1] = (Read_EEPROM(0x03)<<8) | Read_EEPROM(0x02);
+		LED_Intervaltime[2] = (Read_EEPROM(0x05)<<8) | Read_EEPROM(0x04);
+		LED_Intervaltime[3] = (Read_EEPROM(0x07)<<8) | Read_EEPROM(0x06);
+	}
+	else{
+		LED_Intervaltime[0] = 400;
+		LED_Intervaltime[1] = 400;
+		LED_Intervaltime[2] = 400;
+		LED_Intervaltime[3] = 400;
+	}
+}
+
+
+
+//数码管函数
 u8 key_value;
-void Hand_State(){
-	//ch2 = Read_EEPROM(0x00);
-	relay_flag = 0 ;buzzer_flag=0;
-	P2 = 0x80; P0 = 0Xff;LED2 = 0; LED1 = 1;P2 = 0x00;            //LED2亮
-	while(SYS){
-		SMG_Process();
-		DS1302_Process();                     //时钟
-		    
-		ch1 = Read_ADC_Process();		         //湿度ch1
-		Pan_Process(buzzer_flag,relay_flag);          //湿度值判断          如果.....就不会判断（里面有判断条件）
-		
-		key_value = BTN_Read_State();
-		if(key_value == 7) SYS =! SYS;
-		if(key_value == 6){
-			buzzer_beep =~ buzzer_beep;
-		};//开关蜂鸣器提醒
-//		if(key_value == 5) {relay_flag = 0;}     //继电器开
-//		if(key_value == 4) {relay_flag = 1;}    //继电器关
-
-			if(ch1 > ch2&&buzzer_beep == 0 ){                                  //根据湿度数据自动打开蜂鸣器
-				buzzer_flag= 1;
-			}else{
-				buzzer_flag = 0;
-			}	
-
-		}
-		
-	
-}
-
-//自动状态
-void AUTO_State(){
-	//ch2 = Read_EEPROM(0x00);
-	relay_flag = 0 ;buzzer_flag=0;
-	P2 = 0x80; P0 = 0Xff;LED2 = 1; LED1 = 0;P2 = 0x00;       //LED1亮
-	while(SYS == 0){
-	SMG_Process();
-	DS1302_Process();                     //时钟
-	ch1 = Read_ADC_Process();		         //湿度ch1
-	Pan_Process(buzzer_flag,relay_flag);          //湿度值判断          如果.....就不会判断（里面有判断条件）
-	
-	key_value = BTN_Read_State();
-	if(key_value == 7){
-		Write_EEROM(0x00,ch2);  
-		SYS =! SYS;
-		
-		display = 0;
-		        
-	}
-	if(key_value == 6){       
-	
-			if(display == 0){          //进入湿度调节界面   键5键4可以调节
-				display = 1;
-			}else if(display == 1){      
-				display = 0;
-				Write_EEROM(0x00,ch2);			//退出湿度调节界面,并保存到EEPROM中
-			}
-	};
-	if(display == 1){
-				if(key_value == 5){
-				ch2 += 5;
-				};
-				if(key_value == 4){
-				ch2 -=5;
-				};
-			}
-		
-	 if(ch1 > ch2 ){                               //根据湿度数据自动控制打开或关闭灌溉设备
-				relay_flag = 1;
-			}else{
-				relay_flag = 0;
-			}
-}
-	
-}
-
 void SMG_Process(){
-	if(display == 0){                          //自动状态下的S6键切换界面
-			smg_buf[0] =smg_code[hour/10];
-			smg_buf[1] = smg_code[hour%10];
-			smg_buf[2] = smg_code[ch2/100] ;              //0x40
-			smg_buf[3] = smg_code[ch2/10%10];        //minute
-			smg_buf[4] = smg_code[ch2%10];
-			smg_buf[5] = 0x00;
-			smg_buf[6] = smg_code[ch1/10%10];
-			smg_buf[7] =  smg_code[ch1%10];
+	if(Display==0){
+	amg_buf[0] = smg_code[LED_Intervaltime[0]/1000];
+	amg_buf[1] = smg_code[LED_Intervaltime[0]/100%10];
+	amg_buf[2] = smg_code[LED_Intervaltime[0]/10%10];
+	amg_buf[3] = smg_code[LED_Intervaltime[0]%10];
+	amg_buf[4] =0x00;
+	amg_buf[5] = 0x00;
+	amg_buf[6] =0x00;
+	amg_buf[7] = smg_code[a];
+	}
+	
+	if(Display==1){
+	if(twinkling_flag==1){                                  //闪烁
+		if(twinkling_time>=800){twinkling =~ twinkling;twinkling_time=0;}
+		if(twinkling==0){
+		amg_buf[0] = smg_code[0];
+		amg_buf[1] = smg_code[LED_Mode];
+		amg_buf[2] = smg_code[0];
+		}
+		if(twinkling==1){
+		amg_buf[0] =0x00;
+		amg_buf[1] =0x00;
+		amg_buf[2] = 0x00;
+		}
 	}else{
-			smg_buf[0] = smg_code[key_value];
-			smg_buf[1] =  smg_code[SYS];
-			smg_buf[2] = 0x00;
-			smg_buf[3] = 0x00;
-			smg_buf[4] = 0x00;
-			smg_buf[5] =smg_code[ch2/100];
-			smg_buf[6] =  smg_code[ch2/10%10];
-			smg_buf[7] =  smg_code[ch2%10];
+	amg_buf[0] = smg_code[0];
+	amg_buf[1] = smg_code[LED_Mode];
+	amg_buf[2] = smg_code[0];
 	}
 
+	amg_buf[3] = 0x00;
 	
+	
+		if(twinkling_flag==2){                                  //闪烁
+		if(twinkling_time>=800){twinkling =~ twinkling;twinkling_time=0;}
+		if(twinkling==0){
+		amg_buf[4] =smg_code[LED_Intervaltime[i]/1000];
+		amg_buf[5] = smg_code[LED_Intervaltime[i]/100%10];
+		amg_buf[6] = smg_code[LED_Intervaltime[i]/10%10];
+		amg_buf[7] = smg_code[LED_Intervaltime[i]%10];
+		}
+		if(twinkling==1){
+		amg_buf[4] = 0x00;
+		amg_buf[5] =0x00;
+		amg_buf[6] =0x00;
+		amg_buf[7] = 0x00;
+		}
+	}else{
+	amg_buf[4] =smg_code[LED_Intervaltime[i]/1000];
+	amg_buf[5] = smg_code[LED_Intervaltime[i]/100%10];
+	amg_buf[6] = smg_code[LED_Intervaltime[i]/10%10];
+	amg_buf[7] = smg_code[LED_Intervaltime[i]%10];
+	}
+	
+	}
+	
+	if(Display==2){
+	amg_buf[0] = 0x00;
+	amg_buf[1] = 0x00;
+	amg_buf[2] = 0x00;
+	amg_buf[3] = 0x00;
+	amg_buf[4] = 0x00;
+	amg_buf[5] = 0x00;
+	amg_buf[6] = smg_code[0];
+	amg_buf[7] = smg_code[5];
+	}
 	
 }
+
+u8 key_io;
 
 void main(){
 	System_Init();
 	Timer2_Init();
-	Clock_Set(8,30,20);
-	//printf("1");
-	ch2 = Read_EEPROM(0x00);          //开机时读取一次rom的值,ch1湿度阈值------------0x00就行--------
+	RRead_EEPROM();
+	//Write_EEPROM(0x01,0x90>>8);
 	while(1){
-		AUTO_State();
-		Hand_State();
+	
+	SMG_Process();
+	ADC_Read_Process();
+		if(key_time>=50){
+			key_time=0;
+			KBD_ThreeLine();
+			if(Trg_KBD==0x81){			//7      LED灯启动停止按键
+				LED_flag =~ LED_flag;
+			}
+			if(Trg_KBD==0x82){             //6      设置按键
+				kbd_six_count++;
+				if(kbd_six_count==1){Display=1;}
+				if(kbd_six_count==2){twinkling_flag=1;}
+				if(kbd_six_count==3){twinkling_flag=2;}
+				if(kbd_six_count==4){
+				twinkling_flag=0;kbd_six_count=0;Display=0;						//退出设置模式时要保存EEPROM
+				Write_EEPROM(0x00,LED_Intervaltime[0]);
+				Write_EEPROM(0x01,LED_Intervaltime[0]>>8);
+				Write_EEPROM(0x02,LED_Intervaltime[1]);
+				Write_EEPROM(0x03,LED_Intervaltime[1]>>8);
+				Write_EEPROM(0x04,LED_Intervaltime[2]);
+				Write_EEPROM(0x05,LED_Intervaltime[2]>>8);
+				Write_EEPROM(0x06,LED_Intervaltime[3]);
+				Write_EEPROM(0x07,LED_Intervaltime[3]>>8);				
+				}
+			}
+			if(twinkling_flag==1){
+				if(Trg_KBD==0x84){	
+					LED_Mode++;
+					i++;                               //这个是LED_Intervaltime[i] ,保证每一个Mode对应一个时间
+					ledshift=0;
+					Device_Ctrl(0x80,0xff);
+					if(LED_Mode==5) {LED_Mode=1;i=0; }          
+				}
+				if(Trg_KBD==0x88){
+					if(LED_Mode>0){
+						LED_Mode--;
+						i--;
+						ledshift=0;
+						Device_Ctrl(0x80,0xff);
+					}
+				}
+			}
+			if(twinkling_flag==2){
+				if(Trg_KBD==0x84){	
+					LED_Intervaltime[i] += 100;
+					if(LED_Intervaltime[i]==1500) LED_Intervaltime[i]=400;
+				}
+				if(Trg_KBD==0x88){
+					if(LED_Intervaltime[i]>400){
+						LED_Intervaltime[i] -= 100;			
+					}
+				}
+			}
+			
+			if(Cont_KBD==0x88){
+				if(kbd_six_count==0)Display=2;
+			}
+			if(Cont_KBD==0){
+				if(kbd_six_count==0)Display=0;
+			}
+		}
+		
+		
+		
+		
 	}
 }
 
 
-
-void Timer2() interrupt 12{
+void Timer2_ISR()interrupt 12{
 	SMG_Display();
-
+	key_time++;
+	adc_time++;
+	LED_Interval++;
+	pwm_time++;
+	LED_Process();
+	PWM_Process(adc_val);
+	twinkling_time++;
+	
+	
+	
+	
 }
-
-
-
-
-
-//#include "System.h"
-//sbit relay = P0^4;
-//sbit buzzer = P0^6;
-
-//u8 display;  // 显示的界面
-//void SMG_Process(void);
-
-// ds1302 时钟读取
-//u8 hour, minute, second;
-//void DS1302_Process(void) {
-//    minute = BCDToDec(Read_Ds1302_Byte(0x83));
-//    hour = BCDToDec(Read_Ds1302_Byte(0x85));
-//}
-
-// 电位器 Rb2 读取
-//u8 ch1;   // 湿度值
-//u8 ch2;   // 湿度阀值
-//u8 Read_ADC_Process() {
-//    u8 a;
-//    EA = 0;
-//    a = Read_ADC(0x43) / 2.57f;
-//    EA = 1;
-//    return a; // ch1
-//}
-
-// 湿度值判断条件
-//void Pan_Process(u8 ch1, u8 ch2) {
-//    if (ch1 > ch2) {
-//        // 蜂鸣器响
-//        DeviceCtrl(0x80, 0x7f);
-//    }
-//}
-
-// 手动状态
-//u8 key_value;
-//bit buzzer_state = 0;
-
-//void Hand_State() {
-//    while (SYS) {
-//        SMG_Process();
-//        DS1302_Process(); // 时钟
-//        EA = 0;
-//        DeviceCtrl(0x80,0xfd); // LED2 亮
-//        EA = 1;
-
-//        ch1 = Read_ADC_Process(); // 湿度 ch1
-//        Pan_Process(ch1, ch2); // 湿度值判断
-
-//        key_value = BTN_Read_State();
-//        if (key_value == 7) {
-//            Write_EEROM(0x00, ch2); // 切换到自动模式前保存湿度阀值
-//            SYS = !SYS; // 切换工作状态
-//        }
-//        if (key_value == 6) buzzer_state = !buzzer_state; // 开关蜂鸣器提醒
-//        if (key_value == 5) { P2 = 0xa0; relay = 0; buzzer = 0; P2 = 0x00; } // 继电器开
-//        if (key_value == 4) { P2 = 0xa0; relay = 1; buzzer = 0; P2 = 0x00; } // 继电器关
-//    }
-//}
-
-// 自动状态
-//void AUTO_State() {
-//    while (SYS == 0) {
-//        SMG_Process();
-//        DS1302_Process(); // 时钟
-//        EA = 0;
-//       DeviceCtrl(0x80,0xfe); // LED1 亮
-//        EA = 1;
-
-//        ch1 = Read_ADC_Process(); // 湿度 ch1
-//        Pan_Process(ch1, ch2); // 湿度值判断
-
-//        key_value = BTN_Read_State();
-//        if (key_value == 7) {
-//            Write_EEROM(0x00, ch2); // 保存 ch2 到 EEPROM
-//            SYS = !SYS;
-//            display = 0;
-//        }
-//        if (key_value == 6) { // 进入或退出湿度调节界面
-//            if (display == 0) {
-//                display = 1;
-//            } else if (display == 1) {
-//                display = 0;
-//                Write_EEROM(0x00, ch2); // 保存湿度阀值到 EEPROM
-//            }
-//        }
-//        if (display == 1) { // 湿度阀值调整界面
-//            if (key_value == 5) {
-//                ch2 += 1; // 增加湿度阀值
-//            }
-//            if (key_value == 4) {
-//                ch2 -= 1; // 减少湿度阀值
-//            }
-//        }
-//    }
-//}
-
-//void SMG_Process() {
-//    if (display == 0) { // 自动状态下的 S6 键切换界面
-//        smg_buf[0] = smg_code[hour / 10];
-//        smg_buf[1] = smg_code[hour % 10];
-//        smg_buf[2] = smg_code[ch2 / 100];
-//        smg_buf[3] = smg_code[ch2 / 10 % 10];
-//        smg_buf[4] = smg_code[ch2 % 10];
-//        smg_buf[5] = 0x00;
-//        smg_buf[6] = smg_code[ch1 / 10 % 10];
-//        smg_buf[7] = smg_code[ch1 % 10];
-//    } else {
-//        smg_buf[0] = smg_code[key_value];
-//        smg_buf[1] = smg_code[SYS];
-//        smg_buf[2] = 0x00;
-//        smg_buf[3] = 0x00;
-//        smg_buf[4] = 0x00;
-//        smg_buf[5] = smg_code[ch2 / 100];
-//        smg_buf[6] = smg_code[ch2 / 10 % 10];
-//        smg_buf[7] = smg_code[ch2 % 10];
-//    }
-//}
-
-//void main() {
-//    System_Init();
-//    Timer2_Init();
-//    Clock_Set(8, 30, 20);
-//    
-//	if (Read_EEPROM(0x10) == 128) { // 假设 128 是默认值或错误值
-//    Write_EEROM(0x10, 50); // 设置一个默认值，例如 50
-//}
-//	ch2 = Read_EEPROM(0x00); // 开机时读取一次 EEPROM 的值，ch1 湿度阈值
-//    while (1) {
-//        if (SYS == 0) {
-//            AUTO_State();
-//        } else {
-//            Hand_State();
-//        }
-//    }
-//}
-
-//void Timer2() interrupt 12 {
-//    SMG_Display();
-//}
-

@@ -106,49 +106,37 @@ unsigned char IIC_RecByte(void)
 
 
 //-------------------------下面函数要自己编写--------------------------
-
-
-
-
-//读取PCF8591
-//读取DAC
 u8 Read_ADC(u8 ctrl_byte){
 	u8 adc_val;
-	 IIC_Start();
-//	 IIC_WaitAck();
-	 IIC_SendByte(0x90); 
-	 IIC_WaitAck();
-	 IIC_SendByte(ctrl_byte); 
-	 IIC_WaitAck();
-	 
-	  IIC_Start();
-//	  IIC_WaitAck();
-	  IIC_SendByte(0x91); 
-	  IIC_WaitAck();
-	  adc_val = IIC_RecByte();
-//	  IIC_WaitAck();
-	  IIC_SendAck(1);
-	  IIC_Stop();
-	  return adc_val;
+	IIC_Start();
+	IIC_SendByte(0x90);
+	IIC_WaitAck();
+	IIC_SendByte(ctrl_byte);
+	IIC_WaitAck();
+	
+	IIC_Start();
+	IIC_SendByte(0x91);
+	IIC_WaitAck();
+	adc_val = IIC_RecByte();
+	IIC_SendAck(1);
+	IIC_Stop();
+	return adc_val;
 }
 
-//写EEPROM
-void Write_EEROM(u8 add,u8 dat){
+void Write_EEPROM(u8 add,u8 dat){
 	IIC_Start();
 	IIC_SendByte(0xa0);
 	IIC_WaitAck();
-	IIC_SendByte(add); 
+	IIC_SendByte(add);
 	IIC_WaitAck();
-	IIC_SendByte(dat); 
+	IIC_SendByte(dat);
 	IIC_WaitAck();
 	IIC_Stop();
-	IIC_Delay(5);        //---------要等待-----------
+	Delay5ms();
 }
 
-
-//读EEPROM
 u8 Read_EEPROM(u8 add){
-	u8 rom_val;
+	u8 dat;
 	IIC_Start();
 	IIC_SendByte(0xa0);
 	IIC_WaitAck();
@@ -158,8 +146,11 @@ u8 Read_EEPROM(u8 add){
 	IIC_Start();
 	IIC_SendByte(0xa1);
 	IIC_WaitAck();
-	rom_val = IIC_RecByte();
+	dat = IIC_RecByte();
 	IIC_SendAck(1);
 	IIC_Stop();
-	return rom_val;
+	
+	return dat;
 }
+
+
