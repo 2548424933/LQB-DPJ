@@ -1,346 +1,204 @@
-C51 COMPILER V9.56.0.0   MAIN                                                              07/22/2024 10:52:24 PAGE 1   
+C51 COMPILER V9.56.0.0   MAIN                                                              08/07/2024 11:25:55 PAGE 1   
 
 
 C51 COMPILER V9.56.0.0, COMPILATION OF MODULE MAIN
 OBJECT MODULE PLACED IN .\Objects\main.obj
-COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE MODP2 INCDIR(.\System;.\Device) DEB
-                    -UG OBJECTEXTEND PRINT(.\Listings\main.lst) OBJECT(.\Objects\main.obj)
+COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Device;.\System) DEBUG OBJ
+                    -ECTEXTEND PRINT(.\Listings\main.lst) OBJECT(.\Objects\main.obj)
 
 line level    source
 
    1          #include "System.h"
-   2          sbit relay = P0^4;
-   3          sbit buzzer = P0^6;
-   4          sbit LED1 = P0^0;
-   5          sbit LED2 = P0^1;
-   6          sbit LED3 = P0^7;
-   7          bit buzzer_flag,relay_flag,buzzer_beep;
-   8          u8 display;//ÏÔÊ¾µÄ½çÃæ
-   9          
-  10          void SMG_Process(void);
-  11          
-  12          //ds1302Ê±ÖÓ¶ÁÈ¡
-  13          u8 hour,minute,second;
-  14          void DS1302_Process(void){
-  15   1              minute = BCDToDec(Read_Ds1302_Byte(0x83));
-  16   1              hour = BCDToDec(Read_Ds1302_Byte(0x85));
-  17   1      }
-  18          
-  19          //µçÎ»Æ÷ Rb2¶ÁÈ¡
-  20          u8 ch1;       //Êª¶ÈÖµ
-  21          u8 ch2;     //Êª¶È·§Öµ
-  22          u8 ch3;     //Êª¶È·§ÖµÅÐ¶Ï
-  23          u8 Read_ADC_Process(){
-  24   1                      u8 a;
-  25   1                      //EA = 0;
-  26   1                      a = Read_ADC(0x43)/2.57f;
-  27   1                      //EA = 1;
-  28   1                      return a;                 //ch1
-  29   1      }
-  30          
-  31          //Êª¶ÈÖµÅÐ¶ÏÌõ¼þ
-  32          void Pan_Process(bit buzzer_flag,bit relay_flag){
-  33   1                      if(buzzer_flag == 0 && relay_flag == 0){          ///           
-  34   2                              P2 = 0xa0;buzzer=0;relay=0;P2=0x00;
-  35   2                      }
-  36   1                      if(buzzer_flag == 0 && relay_flag == 1){              
-  37   2                              P2 = 0xa0;buzzer=0;relay=1;P2=0x00;
-  38   2                      }
-  39   1                      if(buzzer_flag == 1 && relay_flag == 0){ 
-  40   2                              P2 = 0xa0;buzzer=1;relay=0;P2=0x00;
-  41   2                      }
-  42   1                      if(buzzer_flag == 1 && relay_flag == 1){ 
-  43   2                              P2 = 0xa0;buzzer=1;relay=1;P2=0x00;
-  44   2                      }
-  45   1      }
-  46          
-  47          //ÊÖ¶¯×´Ì¬
-  48          u8 key_value;
-  49          void Hand_State(){
-  50   1              //ch2 = Read_EEPROM(0x00);
-  51   1              relay_flag = 0 ;buzzer_flag=0;
-  52   1              P2 = 0x80; P0 = 0Xff;LED2 = 0; LED1 = 1;P2 = 0x00;            //LED2ÁÁ
-  53   1              while(SYS){
-  54   2                      SMG_Process();
-C51 COMPILER V9.56.0.0   MAIN                                                              07/22/2024 10:52:24 PAGE 2   
+   2          bit Display=1;
+   3          u8 key_time; u8 key_io;
+   4          u16 adc_val;u16 adc_time;  //--------------????ÎªÊ²Ã´ÓÃu16²»¿ÉÒÔ{µ½µÚ30ÃëÊ±Ðý×ªµçÎ»Æ÷Ã»ÓÃ}¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
+             -ADC_Read_Process()
+   5          u8 dac_val=2; bit dac_flag; s16 dac_time;
+   6          s16 ne555_time; u32 ne555_val;
+   7          bit SMG_flag=0;
+   8          
+   9          sbit LED4 = P0^3;
+  10          
+  11          void Timer2_Init(void)          //1ºÁÃë@12.000MHz
+  12          {
+  13   1              AUXR |= 0x04;                   //¶¨Ê±Æ÷Ê±ÖÓ1TÄ£Ê½
+  14   1              T2L = 0x20;                             //ÉèÖÃ¶¨Ê±³õÊ¼Öµ
+  15   1              T2H = 0xD1;                             //ÉèÖÃ¶¨Ê±³õÊ¼Öµ
+  16   1              AUXR |= 0x10;                   //¶¨Ê±Æ÷2¿ªÊ¼¼ÆÊ±
+  17   1              IE2 |= 0x04;
+  18   1              EA = 1;
+  19   1      }
+  20          
+  21          void Counter0_Init(){                 //¶¨Ê±Æ÷0¼ÆÊýÆ÷
+  22   1              TMOD |= 0x05;
+  23   1              TH0 = 0x00;
+  24   1               TL1 = 0x00;
+  25   1               TR0 = 1;
+  26   1      }
+  27          
+  28          
+  29          //ADC¶ÁÈ¡
+  30          void ADC_Read_Process(){
+  31   1              if(adc_time>=10){       
+  32   2                      adc_val=Read_ADC()*100/51;   //Èç¹ûÄãÓÃÒ»¸öÕûÊý³ýÒÔÁíÒ»¸öÕûÊý£¬½á¹û½«ÊÇÕûÊý²¿·Ö£¬¶øÐ¡Êý²¿·Ö½«±»ÉáÆúËùÒÔÒ
+             -ªÏÈ*100
+  33   2              }
+  34   1      }
+  35          
+  36          
+  37          //DACÊä³ö
+  38          void DAC_Write_Process(){
+  39   1              if(dac_time>=100){
+  40   2                      if(dac_flag==1){
+  41   3                              dac_val = adc_val;
+  42   3                              //Device_Ctrl(0x80,~0x01);
+  43   3                      }
+  44   2                      else{
+  45   3                              dac_val=2;
+  46   3                              //Device_Ctrl(0x80,0xff);
+  47   3                      }
+  48   2                      Write_DAC(dac_val);
+  49   2              }
+  50   1      }
+  51          
+  52          //NE555
+C51 COMPILER V9.56.0.0   MAIN                                                              08/07/2024 11:25:55 PAGE 2   
 
-  55   2                      DS1302_Process();                     //Ê±ÖÓ
-  56   2                          
-  57   2                      ch1 = Read_ADC_Process();                        //Êª¶Èch1
-  58   2                      Pan_Process(buzzer_flag,relay_flag);          //Êª¶ÈÖµÅÐ¶Ï          Èç¹û.....¾Í²»»áÅÐ¶Ï£¨ÀïÃæÓÐÅÐ¶ÏÌõ¼þ£
-             -©
-  59   2                      
-  60   2                      key_value = BTN_Read_State();
-  61   2                      if(key_value == 7) SYS =! SYS;
-  62   2                      if(key_value == 6){
-  63   3                              buzzer_beep =~ buzzer_beep;
-  64   3                      };//¿ª¹Ø·äÃùÆ÷ÌáÐÑ
-  65   2      //              if(key_value == 5) {relay_flag = 0;}     //¼ÌµçÆ÷¿ª
-  66   2      //              if(key_value == 4) {relay_flag = 1;}    //¼ÌµçÆ÷¹Ø
-  67   2      
-  68   2                              if(ch1 > ch2&&buzzer_beep == 0 ){                                  //¸ù¾ÝÊª¶ÈÊý¾Ý×Ô¶¯´ò¿ª·äÃùÆ÷
-  69   3                                      buzzer_flag= 1;
-  70   3                              }else{
-  71   3                                      buzzer_flag = 0;
-  72   3                              }       
-  73   2      
-  74   2                      }
-  75   1                      
-  76   1              
-  77   1      }
-  78          
-  79          //×Ô¶¯×´Ì¬
-  80          void AUTO_State(){
-  81   1              ch2 = Read_EEPROM(0x00);
-  82   1              relay_flag = 0 ;buzzer_flag=0;
-  83   1              P2 = 0x80; P0 = 0Xff;LED2 = 1; LED1 = 0;P2 = 0x00;       //LED1ÁÁ
-  84   1              while(SYS == 0){
-  85   2              SMG_Process();
-  86   2              DS1302_Process();                     //Ê±ÖÓ
-  87   2              ch1 = Read_ADC_Process();                        //Êª¶Èch1
-  88   2              Pan_Process(buzzer_flag,relay_flag);          //Êª¶ÈÖµÅÐ¶Ï          Èç¹û.....¾Í²»»áÅÐ¶Ï£¨ÀïÃæÓÐÅÐ¶ÏÌõ¼þ£©
-  89   2              
-  90   2              key_value = BTN_Read_State();
-  91   2              if(key_value == 7){
-  92   3                      Write_EEROM(0x00,ch2);  
-  93   3                      SYS =! SYS;
-  94   3                      
-  95   3                      display = 0;
-  96   3                              
-  97   3              }
-  98   2              if(key_value == 6){       
-  99   3              
- 100   3                              if(display == 0){          //½øÈëÊª¶Èµ÷½Ú½çÃæ   ¼ü5¼ü4¿ÉÒÔµ÷½Ú
- 101   4                                      display = 1;
- 102   4                              }else if(display == 1){      
- 103   4                                      display = 0;
- 104   4                                      Write_EEROM(0x00,ch2);                  //ÍË³öÊª¶Èµ÷½Ú½çÃæ,²¢±£´æµ½EEPROMÖÐ
- 105   4                              }
- 106   3              };
- 107   2              if(display == 1){
- 108   3                                      if(key_value == 5){
- 109   4                                      ch2 += 5;
- 110   4                                      };
- 111   3                                      if(key_value == 4){
- 112   4                                      ch2 -=5;
- 113   4                                      };
- 114   3                              }
- 115   2                      
-C51 COMPILER V9.56.0.0   MAIN                                                              07/22/2024 10:52:24 PAGE 3   
+  53          void NE555_Process(){
+  54   1              if(ne555_time>=1000){
+  55   2                      ne555_time=0;
+  56   2                      ne555_val = (TH0<<8)|TL0;
+  57   2                      TL0=0;
+  58   2                      TH0=0;
+  59   2              }
+  60   1      
+  61   1      }
+  62          
+  63          
+  64          
+  65          
+  66          u8 led_ctrl=0xff;
+  67          //LEDº¯Êý
+  68          void LED_Process(){
+  69   1              //if((150<=dac_val&&dac_val<250)  ||  dac_val>=350){P2=0x80;P03=0;P2=0x00;}         //ÔÚÄãµÄ´úÂëÖÐ£¬½« P2
+             - ÉèÖÃÎª 0x80 È»ºóÑ¸ËÙÉèÖÃÎª 0x00 ¿ÉÄÜ»áµ¼ÖÂËùÓÐÁ¬½Óµ½ P2 µÄµÆ¶ÌÔÝµØ±»¼¤»î¡£ÕâÊÇÒòÎªµ± P2 ±»ÉèÖÃÎª 0x80 Ê±£¬P2 µÄµÚ 7 Î»£
+             -¨¼´ P2.7£©±»ÖÃ¸ßµçÆ½£¬¿ÉÄÜ»áË²¼ä¼¤»îÓë P2 Á¬½ÓµÄËùÓÐµÆ¡£È»ºóÑ¸ËÙ½« P2 ÉèÖÃÎª 0x00£¬»áÈÃÕâÐ©µÆ¶ÌÊ±¼äÄÚ´¦ÓÚµãÁÁ×´Ì¬£¬µ«ÓÉÓ
+             -ÚÊ±¼ä¼«¶Ì£¬ËùÒÔÁÁ¶È²»¸ß¡£
+  70   1              //if(dac_val<150  ||  (250<=dac_val && dac_val<350)){P2=0x80;P03=1;P2=0x00;} 
+  71   1              
+  72   1              if((150<=adc_val&&adc_val<250)  ||  adc_val>=350){led_ctrl&=~0x04;}  
+  73   1              else if(adc_val<150  ||  (250<=adc_val && adc_val<350)){led_ctrl|=0x04;} 
+  74   1              
+  75   1              if((1000<=ne555_val&&dac_val<5000)   ||   10000<=ne555_val){led_ctrl&=~0x08;}
+  76   1              else if(ne555_val<1000   ||   (5000<=ne555_val&&dac_val<10000)){led_ctrl|=0x08;}
+  77   1      
+  78   1      //      if(ne555_val<1000) led_ctrl |= 0x08;
+  79   1      //      else if(ne555_val<5000) led_ctrl &= ~0x08;
+  80   1      //      else if(ne555_val<10000) led_ctrl |= 0x08;
+  81   1      //      else led_ctrl &= ~0x08;
+  82   1      
+  83   1      
+  84   1      Device_Ctrl(0x80,led_ctrl);
+  85   1      }
+  86          
+  87          
+  88          
+  89          
+  90          
+  91          //ÊýÂë¹Ü²Ù×÷º¯Êý
+  92          void SMG_Process(){
+  93   1              if(SMG_flag==0){
+  94   2                      if(Display == 0){
+  95   3                      amg_buf[0] =0x71;
+  96   3                      amg_buf[1] =0x00;
+  97   3                      amg_buf[2] = 0x00;
+  98   3                      amg_buf[3] = smg_code[ne555_val/10000];
+  99   3                      amg_buf[4] = smg_code[ne555_val/1000%10];
+ 100   3                      amg_buf[5] = smg_code[ne555_val/100%10];
+ 101   3                      amg_buf[6] = smg_code[ne555_val/10%10];
+ 102   3                      amg_buf[7] = smg_code[ne555_val%10];
+ 103   3                      }               
+ 104   2                      if(Display == 1){
+ 105   3                      amg_buf[0] =0x3e;
+ 106   3                      amg_buf[1] =0x00;
+ 107   3                      amg_buf[2] = 0x00;
+ 108   3                      amg_buf[3] = smg_code[dac_flag];
+ 109   3                      amg_buf[4] = 0x00;
+ 110   3                      amg_buf[5] = smg_code[adc_val/100] | 0x80;
+ 111   3                      amg_buf[6] = smg_code[adc_val/10%10];
+C51 COMPILER V9.56.0.0   MAIN                                                              08/07/2024 11:25:55 PAGE 3   
 
- 116   2               if(ch1 > ch2 ){                               //¸ù¾ÝÊª¶ÈÊý¾Ý×Ô¶¯¿ØÖÆ´ò¿ª»ò¹Ø±Õ¹à¸ÈÉè±¸
- 117   3                                      relay_flag = 1;
- 118   3                              }else{
- 119   3                                      relay_flag = 0;
- 120   3                              }
- 121   2      }
- 122   1              
- 123   1      }
- 124          
- 125          void SMG_Process(){
- 126   1              if(display == 0){                          //×Ô¶¯×´Ì¬ÏÂµÄS6¼üÇÐ»»½çÃæ
- 127   2                              smg_buf[0] =smg_code[hour/10];
- 128   2                              smg_buf[1] = smg_code[hour%10];
- 129   2                              smg_buf[2] = smg_code[ch2/100] ;              //0x40
- 130   2                              smg_buf[3] = smg_code[ch2/10%10];        //minute
- 131   2                              smg_buf[4] = smg_code[ch2%10];
- 132   2                              smg_buf[5] = 0x00;
- 133   2                              smg_buf[6] = smg_code[ch1/10%10];
- 134   2                              smg_buf[7] =  smg_code[ch1%10];
- 135   2              }else{
- 136   2                              smg_buf[0] = smg_code[key_value];
- 137   2                              smg_buf[1] =  smg_code[SYS];
- 138   2                              smg_buf[2] = 0x00;
- 139   2                              smg_buf[3] = 0x00;
- 140   2                              smg_buf[4] = 0x00;
- 141   2                              smg_buf[5] =smg_code[ch2/100];
- 142   2                              smg_buf[6] =  smg_code[ch2/10%10];
- 143   2                              smg_buf[7] =  smg_code[ch2%10];
- 144   2              }
- 145   1      
- 146   1              
- 147   1              
- 148   1      }
- 149          
- 150          void main(){
- 151   1              System_Init();
- 152   1              Timer2_Init();
- 153   1              Clock_Set(8,30,20);
- 154   1              //printf("1");
- 155   1              ch2 = Read_EEPROM(0x00);          //¿ª»úÊ±¶ÁÈ¡Ò»´ÎromµÄÖµ,ch1Êª¶ÈãÐÖµ------------0x00¾ÍÐÐ--------
- 156   1              while(1){
- 157   2                      AUTO_State();
- 158   2                      Hand_State();
- 159   2              }
- 160   1      }
+ 112   3                      amg_buf[7] = smg_code[adc_val%10];
+ 113   3                      }
+ 114   2              }
+ 115   1              else{
+ 116   2                      amg_buf[0] = 0x00;
+ 117   2                      amg_buf[1] =0x00;
+ 118   2                      amg_buf[2] = 0x00;
+ 119   2                      amg_buf[3] = 0x00;
+ 120   2                      amg_buf[4] = 0x00;
+ 121   2                      amg_buf[5] = 0x00;
+ 122   2                      amg_buf[6] = 0x00;
+ 123   2                      amg_buf[7] = 0x00;
+ 124   2              }
+ 125   1      
+ 126   1      }
+ 127          
+ 128          
+ 129          void main(){
+ 130   1              System_Init();
+ 131   1              Timer2_Init();
+ 132   1              Counter0_Init();
+ 133   1              
+ 134   1              while(1){
+ 135   2                      SMG_Process();
+ 136   2                      ADC_Read_Process();  
+ 137   2                      DAC_Write_Process();
+ 138   2                      NE555_Process();
+ 139   2                      
+ 140   2                      if(key_time>=5){
+ 141   3                              key_time = 0;
+ 142   3                              KBD_ThreeLine();
+ 143   3                              if(Trg==0x81) {SMG_flag=~SMG_flag;}      //s7
+ 144   3                              if(Trg==0x82) {}                                              //s6
+ 145   3                              if(Trg==0x84) {dac_flag=~dac_flag;}         //s5
+ 146   3                              if(Trg==0x88) {Display=~Display;}            //s4
+ 147   3                      }
+ 148   2                      
+ 149   2                      
+ 150   2                      
+ 151   2                      
+ 152   2                      
+ 153   2                      
+ 154   2                      
+ 155   2                      
+ 156   2                      
+ 157   2              }
+ 158   1      
+ 159   1      }
+ 160          
  161          
  162          
- 163          
- 164          void Timer2() interrupt 12{
- 165   1              SMG_Display();
- 166   1      
- 167   1      }
- 168          
- 169          
- 170          
- 171          
- 172          
- 173          //#include "System.h"
- 174          //sbit relay = P0^4;
- 175          //sbit buzzer = P0^6;
- 176          
- 177          //u8 display;  // ÏÔÊ¾µÄ½çÃæ
-C51 COMPILER V9.56.0.0   MAIN                                                              07/22/2024 10:52:24 PAGE 4   
-
- 178          //void SMG_Process(void);
- 179          
- 180          // ds1302 Ê±ÖÓ¶ÁÈ¡
- 181          //u8 hour, minute, second;
- 182          //void DS1302_Process(void) {
- 183          //    minute = BCDToDec(Read_Ds1302_Byte(0x83));
- 184          //    hour = BCDToDec(Read_Ds1302_Byte(0x85));
- 185          //}
- 186          
- 187          // µçÎ»Æ÷ Rb2 ¶ÁÈ¡
- 188          //u8 ch1;   // Êª¶ÈÖµ
- 189          //u8 ch2;   // Êª¶È·§Öµ
- 190          //u8 Read_ADC_Process() {
- 191          //    u8 a;
- 192          //    EA = 0;
- 193          //    a = Read_ADC(0x43) / 2.57f;
- 194          //    EA = 1;
- 195          //    return a; // ch1
- 196          //}
- 197          
- 198          // Êª¶ÈÖµÅÐ¶ÏÌõ¼þ
- 199          //void Pan_Process(u8 ch1, u8 ch2) {
- 200          //    if (ch1 > ch2) {
- 201          //        // ·äÃùÆ÷Ïì
- 202          //        DeviceCtrl(0x80, 0x7f);
- 203          //    }
- 204          //}
- 205          
- 206          // ÊÖ¶¯×´Ì¬
- 207          //u8 key_value;
- 208          //bit buzzer_state = 0;
- 209          
- 210          //void Hand_State() {
- 211          //    while (SYS) {
- 212          //        SMG_Process();
- 213          //        DS1302_Process(); // Ê±ÖÓ
- 214          //        EA = 0;
- 215          //        DeviceCtrl(0x80,0xfd); // LED2 ÁÁ
- 216          //        EA = 1;
- 217          
- 218          //        ch1 = Read_ADC_Process(); // Êª¶È ch1
- 219          //        Pan_Process(ch1, ch2); // Êª¶ÈÖµÅÐ¶Ï
- 220          
- 221          //        key_value = BTN_Read_State();
- 222          //        if (key_value == 7) {
- 223          //            Write_EEROM(0x00, ch2); // ÇÐ»»µ½×Ô¶¯Ä£Ê½Ç°±£´æÊª¶È·§Öµ
- 224          //            SYS = !SYS; // ÇÐ»»¹¤×÷×´Ì¬
- 225          //        }
- 226          //        if (key_value == 6) buzzer_state = !buzzer_state; // ¿ª¹Ø·äÃùÆ÷ÌáÐÑ
- 227          //        if (key_value == 5) { P2 = 0xa0; relay = 0; buzzer = 0; P2 = 0x00; } // ¼ÌµçÆ÷¿ª
- 228          //        if (key_value == 4) { P2 = 0xa0; relay = 1; buzzer = 0; P2 = 0x00; } // ¼ÌµçÆ÷¹Ø
- 229          //    }
- 230          //}
- 231          
- 232          // ×Ô¶¯×´Ì¬
- 233          //void AUTO_State() {
- 234          //    while (SYS == 0) {
- 235          //        SMG_Process();
- 236          //        DS1302_Process(); // Ê±ÖÓ
- 237          //        EA = 0;
- 238          //       DeviceCtrl(0x80,0xfe); // LED1 ÁÁ
- 239          //        EA = 1;
-C51 COMPILER V9.56.0.0   MAIN                                                              07/22/2024 10:52:24 PAGE 5   
-
- 240          
- 241          //        ch1 = Read_ADC_Process(); // Êª¶È ch1
- 242          //        Pan_Process(ch1, ch2); // Êª¶ÈÖµÅÐ¶Ï
- 243          
- 244          //        key_value = BTN_Read_State();
- 245          //        if (key_value == 7) {
- 246          //            Write_EEROM(0x00, ch2); // ±£´æ ch2 µ½ EEPROM
- 247          //            SYS = !SYS;
- 248          //            display = 0;
- 249          //        }
- 250          //        if (key_value == 6) { // ½øÈë»òÍË³öÊª¶Èµ÷½Ú½çÃæ
- 251          //            if (display == 0) {
- 252          //                display = 1;
- 253          //            } else if (display == 1) {
- 254          //                display = 0;
- 255          //                Write_EEROM(0x00, ch2); // ±£´æÊª¶È·§Öµµ½ EEPROM
- 256          //            }
- 257          //        }
- 258          //        if (display == 1) { // Êª¶È·§Öµµ÷Õû½çÃæ
- 259          //            if (key_value == 5) {
- 260          //                ch2 += 1; // Ôö¼ÓÊª¶È·§Öµ
- 261          //            }
- 262          //            if (key_value == 4) {
- 263          //                ch2 -= 1; // ¼õÉÙÊª¶È·§Öµ
- 264          //            }
- 265          //        }
- 266          //    }
- 267          //}
- 268          
- 269          //void SMG_Process() {
- 270          //    if (display == 0) { // ×Ô¶¯×´Ì¬ÏÂµÄ S6 ¼üÇÐ»»½çÃæ
- 271          //        smg_buf[0] = smg_code[hour / 10];
- 272          //        smg_buf[1] = smg_code[hour % 10];
- 273          //        smg_buf[2] = smg_code[ch2 / 100];
- 274          //        smg_buf[3] = smg_code[ch2 / 10 % 10];
- 275          //        smg_buf[4] = smg_code[ch2 % 10];
- 276          //        smg_buf[5] = 0x00;
- 277          //        smg_buf[6] = smg_code[ch1 / 10 % 10];
- 278          //        smg_buf[7] = smg_code[ch1 % 10];
- 279          //    } else {
- 280          //        smg_buf[0] = smg_code[key_value];
- 281          //        smg_buf[1] = smg_code[SYS];
- 282          //        smg_buf[2] = 0x00;
- 283          //        smg_buf[3] = 0x00;
- 284          //        smg_buf[4] = 0x00;
- 285          //        smg_buf[5] = smg_code[ch2 / 100];
- 286          //        smg_buf[6] = smg_code[ch2 / 10 % 10];
- 287          //        smg_buf[7] = smg_code[ch2 % 10];
- 288          //    }
- 289          //}
- 290          
- 291          //void main() {
- 292          //    System_Init();
- 293          //    Timer2_Init();
- 294          //    Clock_Set(8, 30, 20);
- 295          //    
- 296          //      if (Read_EEPROM(0x10) == 128) { // ¼ÙÉè 128 ÊÇÄ¬ÈÏÖµ»ò´íÎóÖµ
- 297          //    Write_EEROM(0x10, 50); // ÉèÖÃÒ»¸öÄ¬ÈÏÖµ£¬ÀýÈç 50
- 298          //}
- 299          //      ch2 = Read_EEPROM(0x00); // ¿ª»úÊ±¶ÁÈ¡Ò»´Î EEPROM µÄÖµ£¬ch1 Êª¶ÈãÐÖµ
- 300          //    while (1) {
- 301          //        if (SYS == 0) {
-C51 COMPILER V9.56.0.0   MAIN                                                              07/22/2024 10:52:24 PAGE 6   
-
- 302          //            AUTO_State();
- 303          //        } else {
- 304          //            Hand_State();
- 305          //        }
- 306          //    }
- 307          //}
- 308          
- 309          //void Timer2() interrupt 12 {
- 310          //    SMG_Display();
- 311          //}
- 312          
+ 163          void Timer2_ISR() interrupt 12{
+ 164   1              SMG_Display();
+ 165   1              key_time++;
+ 166   1              ne555_time++;
+ 167   1              adc_time++;
+ 168   1              dac_time++;
+ 169   1              LED_Process();
+ 170   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    657    ----
+C51 COMPILER V9.56.0.0   MAIN                                                              08/07/2024 11:25:55 PAGE 4   
+
+   CODE SIZE        =    743    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =      8    ----
+   DATA SIZE        =     16    ----
    IDATA SIZE       =   ----    ----
-   BIT SIZE         =      3       2
+   BIT SIZE         =      3    ----
 END OF MODULE INFORMATION.
 
 

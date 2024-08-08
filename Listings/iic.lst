@@ -1,10 +1,10 @@
-C51 COMPILER V9.56.0.0   IIC                                                               07/22/2024 10:52:24 PAGE 1   
+C51 COMPILER V9.56.0.0   IIC                                                               08/07/2024 09:57:11 PAGE 1   
 
 
 C51 COMPILER V9.56.0.0, COMPILATION OF MODULE IIC
 OBJECT MODULE PLACED IN .\Objects\iic.obj
-COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Device\iic.c OPTIMIZE(8,SPEED) BROWSE MODP2 INCDIR(.\System;.\Devic
-                    -e) DEBUG OBJECTEXTEND PRINT(.\Listings\iic.lst) OBJECT(.\Objects\iic.obj)
+COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Device\iic.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Device;.\System) DEB
+                    -UG OBJECTEXTEND PRINT(.\Listings\iic.lst) OBJECT(.\Objects\iic.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   52   1          SCL = 1;
   53   1          IIC_Delay(DELAY_TIME);
   54   1          SCL = 0; 
-C51 COMPILER V9.56.0.0   IIC                                                               07/22/2024 10:52:24 PAGE 2   
+C51 COMPILER V9.56.0.0   IIC                                                               08/07/2024 09:57:11 PAGE 2   
 
   55   1          SDA = 1;
   56   1          IIC_Delay(DELAY_TIME);
@@ -118,70 +118,80 @@ line level    source
  106          
  107          
  108          //-------------------------下面函数要自己编写--------------------------
- 109          
- 110          
- 111          
- 112          
- 113          //读取PCF8591
- 114          //读取DAC
- 115          u8 Read_ADC(u8 ctrl_byte){
- 116   1              u8 adc_val;
-C51 COMPILER V9.56.0.0   IIC                                                               07/22/2024 10:52:24 PAGE 3   
+ 109          //void Write_EEPROM(u8 add,u8 dat){
+ 110          //      IIC_Start();
+ 111          //      IIC_SendByte(0xa0);
+ 112          //      IIC_WaitAck();
+ 113          //      IIC_SendByte(add);
+ 114          //      IIC_WaitAck();
+ 115          //      IIC_SendByte(dat);
+ 116          //      IIC_WaitAck();
+C51 COMPILER V9.56.0.0   IIC                                                               08/07/2024 09:57:11 PAGE 3   
 
- 117   1               IIC_Start();
- 118   1      //       IIC_WaitAck();
- 119   1               IIC_SendByte(0x90); 
- 120   1               IIC_WaitAck();
- 121   1               IIC_SendByte(ctrl_byte); 
- 122   1               IIC_WaitAck();
- 123   1               
- 124   1                IIC_Start();
- 125   1      //        IIC_WaitAck();
- 126   1                IIC_SendByte(0x91); 
- 127   1                IIC_WaitAck();
- 128   1                adc_val = IIC_RecByte();
- 129   1      //        IIC_WaitAck();
- 130   1                IIC_SendAck(1);
- 131   1                IIC_Stop();
- 132   1                return adc_val;
- 133   1      }
- 134          
- 135          //写EEPROM
- 136          void Write_EEROM(u8 add,u8 dat){
- 137   1              IIC_Start();
- 138   1              IIC_SendByte(0xa0);
- 139   1              IIC_WaitAck();
- 140   1              IIC_SendByte(add); 
- 141   1              IIC_WaitAck();
- 142   1              IIC_SendByte(dat); 
- 143   1              IIC_WaitAck();
- 144   1              IIC_Stop();
- 145   1              IIC_Delay(5);        //---------要等待-----------
- 146   1      }
- 147          
- 148          
- 149          //读EEPROM
- 150          u8 Read_EEPROM(u8 add){
- 151   1              u8 rom_val;
- 152   1              IIC_Start();
- 153   1              IIC_SendByte(0xa0);
- 154   1              IIC_WaitAck();
- 155   1              IIC_SendByte(add);
- 156   1              IIC_WaitAck();
- 157   1              
- 158   1              IIC_Start();
- 159   1              IIC_SendByte(0xa1);
- 160   1              IIC_WaitAck();
- 161   1              rom_val = IIC_RecByte();
- 162   1              IIC_SendAck(1);
- 163   1              IIC_Stop();
- 164   1              return rom_val;
- 165   1      }
+ 117          //      IIC_Stop();
+ 118          //      Delay5ms();
+ 119          //}
+ 120          
+ 121          
+ 122          //u8 Read_EEPROM(u8 add){
+ 123          //      u8 dat;
+ 124          //      IIC_Start();
+ 125          //      IIC_SendByte(0xa0);
+ 126          //      IIC_WaitAck();
+ 127          //      IIC_SendByte(add);
+ 128          //      IIC_WaitAck();
+ 129          
+ 130          //      IIC_Start();
+ 131          //      IIC_SendByte(0xa1);
+ 132          //      IIC_WaitAck();
+ 133          //      dat = IIC_RecByte();
+ 134          //      IIC_SendAck(1);
+ 135          //      IIC_Stop();
+ 136          //      
+ 137          //      return dat;
+ 138          //}
+ 139          
+ 140          
+ 141          
+ 142          
+ 143          
+ 144          
+ 145          
+ 146          
+ 147          u8 Read_ADC(){
+ 148   1              u8 adc_val;
+ 149   1              IIC_Start();
+ 150   1              IIC_SendByte(0x90);           // 0x90代表向pcf8591写数据
+ 151   1              IIC_WaitAck();
+ 152   1              IIC_SendByte(0x43);    //光敏电阻0x41       旋转电位器0x43           0x03湿度？
+ 153   1              IIC_WaitAck();
+ 154   1              
+ 155   1              IIC_Start();
+ 156   1              IIC_SendByte(0x91);
+ 157   1              IIC_WaitAck();
+ 158   1              adc_val = IIC_RecByte();
+ 159   1              IIC_SendAck(1);
+ 160   1              IIC_Stop();
+ 161   1              return adc_val;
+ 162   1      }
+ 163          
+ 164          void Write_DAC(u8 dat){
+ 165   1              IIC_Start();
+ 166   1              IIC_SendByte(0x90);
+ 167   1              IIC_WaitAck();
+ 168   1              IIC_SendByte(0x40);
+ 169   1              IIC_WaitAck();
+ 170   1              IIC_SendByte(dat);
+ 171   1              IIC_WaitAck();
+ 172   1              IIC_Stop();
+ 173   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    272    ----
+   CODE SIZE        =    222    ----
    CONSTANT SIZE    =   ----    ----
+C51 COMPILER V9.56.0.0   IIC                                                               08/07/2024 09:57:11 PAGE 4   
+
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----

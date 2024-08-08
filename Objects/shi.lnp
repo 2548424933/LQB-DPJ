@@ -1,0 +1,9 @@
+".\Objects\main.obj",
+".\Objects\STARTUP.obj",
+".\Objects\device.obj",
+".\Objects\KBD.obj",
+".\Objects\SMG.obj",
+".\Objects\iic.obj",
+".\Objects\System.obj" 
+TO ".\Objects\shi" 
+PRINT(".\Listings\shi.m51") RAMSIZE(256) 

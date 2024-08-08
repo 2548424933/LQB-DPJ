@@ -1,0 +1,51 @@
+C51 COMPILER V9.56.0.0   KBD                                                               08/07/2024 09:57:11 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE KBD
+OBJECT MODULE PLACED IN .\Objects\KBD.obj
+COMPILER INVOKED BY: E:\Keil_c51v956\C51\BIN\C51.EXE Device\KBD.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\Device;.\System) DEB
+                    -UG OBJECTEXTEND PRINT(.\Listings\KBD.lst) OBJECT(.\Objects\KBD.obj)
+
+line level    source
+
+   1          #include "KBD.h"
+   2          
+   3          u8 Key_IO_Pro(){
+   4   1              u8 key_io = 0xff;                    //-----------!!----要初始化为0xff,不然如果没有初始化，它的值是未定义
+             -的，因此 key_io 的初始值可能是任意的（即不确定），可能导致触发多次
+   5   1              P3=0xf0;P4=0Xff;       //列扫描
+   6   1              if(P44==0) key_io=0x70;
+   7   1              if(P42==0) key_io=0xb0;
+   8   1              if(P35==0) key_io=0xd0;
+   9   1              if(P34==0) key_io=0xe0;
+  10   1      
+  11   1              P3=0x0f;P4=0x00;     //行扫描
+  12   1              if(P33==0) key_io=key_io | 0x07;
+  13   1              if(P32==0) key_io=key_io | 0x0b;
+  14   1              if(P31==0) key_io=key_io | 0x0d;
+  15   1              if(P30==0) key_io=key_io | 0x0e;
+  16   1              
+  17   1              return key_io;
+  18   1      }
+  19          
+  20          u8 Trg = 0;
+  21          u8 Cont = 0;
+  22          void KBD_ThreeLine(){
+  23   1              u8 kbddata = Key_IO_Pro() ^ 0xff;
+  24   1              Trg = kbddata & (kbddata ^ Cont);
+  25   1              Cont = kbddata;
+  26   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     73    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
